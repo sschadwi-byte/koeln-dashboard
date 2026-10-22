@@ -1,1 +1,118 @@
 
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Köln Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f5f9;
+      color: #203040;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { margin-top: 0; }
+    .karte {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      margin: 14px 0;
+      box-shadow: 0 2px 8px #0001;
+    }
+    .karte h2 { margin-top: 0; }
+    a {
+      color: #075bbb;
+      text-decoration: none;
+    }
+    .hinweis { color: #64748b; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🏡 Mein Köln Dashboard</h1>
+  <p id="datum"></p>
+
+  <div class="karte">
+    <h2>🌤️ Wetter in Köln</h2>
+    <p id="wetter">Wetter wird geladen …</p>
+  </div>
+
+  <div class="karte">
+    <h2>🚊 KVB – Leuchterstraße</h2>
+    <p>Abfahrten und Verbindungen:</p>
+    <a href="https://www.kvb.koeln/" target="_blank" rel="noopener">
+      KVB öffnen →
+    </a>
+  </div>
+
+  <div class="karte">
+    <h2>🗑️ AWB – Müllabfuhr</h2>
+    <p>Abfuhrtermine und Abfallkalender:</p>
+    <a href="https://www.awbkoeln.de/" target="_blank" rel="noopener">
+      AWB Köln öffnen →
+    </a>
+  </div>
+
+  <div class="karte">
+    <h2>⛽ Tankstellenpreise</h2>
+    <p>Aktuelle Preise in deiner Umgebung:</p>
+    <a href="https://www.clever-tanken.de/" target="_blank" rel="noopener">
+      Tankstellenpreise öffnen →
+    </a>
+  </div>
+
+  <p class="hinweis">
+    Wetterdaten: Open-Meteo. Die übrigen Links öffnen die jeweiligen Anbieter.
+  </p>
+
+  <script>
+    document.getElementById("datum").textContent =
+      new Date().toLocaleDateString("de-DE", {
+        weekday: "long", year: "numeric",
+        month: "long", day: "numeric"
+      });
+
+    async function ladeWetter() {
+      const ausgabe = document.getElementById("wetter");
+      try {
+        const url =
+          "https://api.open-meteo.com/v1/forecast" +
+          "?latitude=50.98&longitude=7.05" +
+          "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m" +
+          "&timezone=Europe%2FBerlin";
+
+        const antwort = await fetch(url);
+        if (!antwort.ok) throw new Error("Wetterdienst nicht erreichbar");
+
+        const daten = await antwort.json();
+        const aktuell = daten.current;
+        const wettertexte = {
+          0: "Sonnig", 1: "Überwiegend sonnig",
+          2: "Teilweise bewölkt", 3: "Bewölkt",
+          45: "Neblig", 48: "Nebel",
+          51: "Leichter Nieselregen", 53: "Nieselregen",
+          55: "Starker Nieselregen", 61: "Leichter Regen",
+          63: "Regen", 65: "Starker Regen",
+          71: "Leichter Schnee", 73: "Schneefall",
+          75: "Starker Schneefall", 80: "Regenschauer",
+          81: "Regenschauer", 82: "Starke Regenschauer",
+          95: "Gewitter"
+        };
+
+        ausgabe.innerHTML =
+          "<strong>" + aktuell.temperature_2m + " °C</strong><br>" +
+          (wettertexte[aktuell.weather_code] || "Wetterlage") + "<br>" +
+          "Luftfeuchtigkeit: " + aktuell.relative_humidity_2m + " %<br>" +
+          "Wind: " + aktuell.wind_speed_10m + " km/h";
+      } catch (fehler) {
+        ausgabe.textContent =
+          "Wetter momentan nicht verfügbar. Bitte später erneut versuchen.";
+      }
+    }
+
+    ladeWetter();
+  </script>
+</body>
+</html>
+
