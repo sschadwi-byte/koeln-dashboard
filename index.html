@@ -187,100 +187,27 @@
       });
     }
 
-    async function ladeKVB() {
-      const status = document.getElementById("kvb-status");
-      const liste = document.getElementById("kvb-abfahrten");
+async function ladeKVB() {
+  const status = document.getElementById("kvb-status");
+  const liste = document.getElementById("kvb-abfahrten");
 
-      try {
-        const url =
-          "https://efa.vrr.de/vrr/XML_DM_REQUEST?" +
-          "outputFormat=rapidJSON&stateless=1&type_dm=stop" +
-          "&name_dm=de%3A05315%3A19614" +
-          "&mode=direct&useRealtime=1&limit=8";
+  liste.replaceChildren();
 
-        const antwort = await fetch(url);
+  const tafel = document.createElement("iframe");
+  tafel.src =
+    "https://dbf.finalrewind.org/K%C3%B6ln%20D%C3%BCnnwald%20Leuchterstr.?hafas=KVB";
+  tafel.title = "KVB-Abfahrten Leuchterstraße";
+  tafel.style.width = "100%";
+  tafel.style.height = "420px";
+  tafel.style.border = "0";
+  tafel.loading = "lazy";
 
-        if (!antwort.ok) {
-          throw new Error("HTTP " + antwort.status);
-        }
+  liste.appendChild(tafel);
 
-        const daten = await antwort.json();
+  status.textContent =
+    "Abfahrtstafel von Finalrewind";
+}
 
-        const abfahrten =
-          daten.stopEvents ||
-          daten.departureList ||
-          [];
-
-        if (!abfahrten.length) {
-          throw new Error(
-            "Antwort erhalten, aber keine Abfahrten gefunden"
-          );
-        }
-
-        liste.replaceChildren();
-
-        abfahrten.slice(0, 8).forEach((a) => {
-          const verkehr = a.transportation || {};
-          const linie =
-            verkehr.disassembledName ||
-            verkehr.name ||
-            a.servingLine?.name ||
-            "?";
-
-          const ziel =
-            verkehr.destination?.name ||
-            a.servingLine?.direction ||
-            a.destination?.name ||
-            "Ziel nicht angegeben";
-
-          const geplant =
-            a.departureTimePlanned ||
-            a.departureTime ||
-            a.dateTime?.departure ||
-            "";
-
-          const erwartet =
-            a.departureTimeEstimated ||
-            a.realDateTime?.departure ||
-            "";
-
-          const zeit = uhrzeit(erwartet || geplant);
-
-          const zeile = document.createElement("div");
-          zeile.className = "abfahrt";
-
-          const linienfeld = document.createElement("div");
-          linienfeld.className = "linie";
-          linienfeld.textContent = linie;
-
-          const zielfeld = document.createElement("div");
-          zielfeld.className = "ziel";
-          zielfeld.textContent = ziel;
-
-          const zeitfeld = document.createElement("div");
-          zeitfeld.className = "zeit";
-          zeitfeld.textContent = zeit || "–";
-
-          zeile.append(linienfeld, zielfeld, zeitfeld);
-          liste.appendChild(zeile);
-        });
-
-        status.textContent =
-          "Zuletzt aktualisiert: " +
-          new Date().toLocaleTimeString("de-DE", {
-            hour: "2-digit",
-            minute: "2-digit"
-          });
-
-      } catch (fehler) {
-        liste.replaceChildren();
-
-        status.textContent =
-          "KVB-Fehler: " + fehler.message;
-
-        console.error("KVB-Fehler:", fehler);
-      }
-    }
 
     ladeWetter();
     ladeKVB();
