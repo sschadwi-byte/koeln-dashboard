@@ -170,8 +170,14 @@
         });
 
         const url =
-          "https://efa.vrr.de/vrr/XML_DM_REQUEST?" +
-          parameter.toString();
+const url =
+  "https://efa.vrr.de/vrr/XML_DM_REQUEST?" +
+  "outputFormat=rapidJSON&stateless=1&type_dm=stop" +
+  "&name_dm=de%3A05315%3A19614" +
+  "&mode=direct&useRealtime=1&limit=8";
+
+          
+  
 
         const antwort = await fetch(url);
         if (!antwort.ok) throw new Error("HTTP " + antwort.status);
