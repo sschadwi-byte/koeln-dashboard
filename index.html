@@ -27,6 +27,28 @@
       text-decoration: none;
     }
     .hinweis { color: #64748b; font-size: 14px; }
+    .abfahrt {
+      display: grid;
+      grid-template-columns: 58px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .linie {
+      background: #e5efff;
+      color: #174a91;
+      border-radius: 7px;
+      padding: 7px 4px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .ziel { font-weight: 600; }
+    .zeit { text-align: right; white-space: nowrap; }
+    .verspaetung {
+      color: #b45309;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -34,13 +56,20 @@
   <p id="datum"></p>
 
   <div class="karte">
-    <h2>🌤️ Wetter in Köln</h2>
+    <h2>🌤️ Wetter in Köln-Dünnwald</h2>
     <p id="wetter">Wetter wird geladen …</p>
   </div>
 
   <div class="karte">
     <h2>🚊 KVB – Leuchterstraße</h2>
-    <p>Abfahrten und Verbindungen:</p>
+    <p id="kvb-status" class="hinweis">
+      Abfahrten werden geladen …
+    </p>
+    <div id="kvb-abfahrten"></div>
+    <p class="hinweis">
+      Echtzeitdaten, soweit vom Fahrplandienst geliefert.
+      Aktualisierung alle 60 Sekunden.
+    </p>
     <a href="https://www.kvb.koeln/" target="_blank" rel="noopener">
       KVB öffnen →
     </a>
@@ -63,14 +92,16 @@
   </div>
 
   <p class="hinweis">
-    Wetterdaten: Open-Meteo. Die übrigen Links öffnen die jeweiligen Anbieter.
+    Wetter: Open-Meteo. Abfahrten: VRR-EFA-Fahrplandienst.
   </p>
 
   <script>
     document.getElementById("datum").textContent =
       new Date().toLocaleDateString("de-DE", {
-        weekday: "long", year: "numeric",
-        month: "long", day: "numeric"
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
       });
 
     async function ladeWetter() {
@@ -78,7 +109,7 @@
       try {
         const url =
           "https://api.open-meteo.com/v1/forecast" +
-          "?latitude=50.98&longitude=7.03" +
+          "?latitude=50.99&longitude=7.03" +
           "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m" +
           "&timezone=Europe%2FBerlin";
 
@@ -87,7 +118,7 @@
 
         const daten = await antwort.json();
         const aktuell = daten.current;
-        const wettertexte = {
+        const texte = {
           0: "Sonnig", 1: "Überwiegend sonnig",
           2: "Teilweise bewölkt", 3: "Bewölkt",
           45: "Neblig", 48: "Nebel",
@@ -102,16 +133,132 @@
 
         ausgabe.innerHTML =
           "<strong>" + aktuell.temperature_2m + " °C</strong><br>" +
-          (wettertexte[aktuell.weather_code] || "Wetterlage") + "<br>" +
+          (texte[aktuell.weather_code] || "Wetterlage") + "<br>" +
           "Luftfeuchtigkeit: " + aktuell.relative_humidity_2m + " %<br>" +
           "Wind: " + aktuell.wind_speed_10m + " km/h";
       } catch (fehler) {
         ausgabe.textContent =
-          "Wetter momentan nicht verfügbar. Bitte später erneut versuchen.";
+          "Wetter momentan nicht verfügbar.";
+      }
+    }
+
+    function uhrzeit(iso) {
+      if (!iso) return "";
+      const datum = new Date(iso);
+      if (Number.isNaN(datum.getTime())) return "";
+      return datum.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Berlin"
+      });
+    }
+
+    async function ladeKVB() {
+      const status = document.getElementById("kvb-status");
+      const liste = document.getElementById("kvb-abfahrten");
+
+      try {
+        const parameter = new URLSearchParams({
+          outputFormat: "JSON",
+          language: "de",
+          type_dm: "stop",
+          name_dm: "de:05315:19614",
+          mode: "direct",
+          useProxFootSearch: "0",
+          useRealtime: "1",
+          limit: "8"
+        });
+
+        const url =
+          "https://efa.vrr.de/vrr/XML_DM_REQUEST?" +
+          parameter.toString();
+
+        const antwort = await fetch(url);
+        if (!antwort.ok) throw new Error("HTTP " + antwort.status);
+
+        const daten = await antwort.json();
+
+        // Je nach EFA-Ausgabe kann die Struktur variieren.
+        const abfahrten =
+          daten.departureList ||
+          daten.stopEvents ||
+          [];
+
+        if (!abfahrten.length) {
+          throw new Error("Keine Abfahrten gefunden");
+        }
+
+        liste.replaceChildren();
+
+        abfahrten.slice(0, 8).forEach((a) => {
+          const linie =
+            a.servingLine?.name ||
+            a.transportation?.disassembledName ||
+            a.transportation?.name ||
+            "?";
+
+          const ziel =
+            a.servingLine?.direction ||
+            a.transportation?.destination?.name ||
+            a.destination?.name ||
+            "Ziel nicht angegeben";
+
+          const geplant =
+            a.departureTimePlanned ||
+            a.dateTime?.departure ||
+            "";
+
+          const erwartet =
+            a.departureTimeEstimated ||
+            a.realDateTime?.departure ||
+            "";
+
+          const zeit = uhrzeit(erwartet || geplant);
+
+          const zeile = document.createElement("div");
+          zeile.className = "abfahrt";
+
+          const linienfeld = document.createElement("div");
+          linienfeld.className = "linie";
+          linienfeld.textContent = linie;
+
+          const zielfeld = document.createElement("div");
+          zielfeld.className = "ziel";
+          zielfeld.textContent = ziel;
+
+          const zeitfeld = document.createElement("div");
+          zeitfeld.className = "zeit";
+          zeitfeld.textContent = zeit || "–";
+
+          if (geplant && erwartet && geplant !== erwartet) {
+            const verspaetung = document.createElement("div");
+            verspaetung.className = "verspaetung";
+            verspaetung.textContent = "Echtzeit";
+            zeitfeld.appendChild(verspaetung);
+          }
+
+          zeile.append(linienfeld, zielfeld, zeitfeld);
+          liste.appendChild(zeile);
+        });
+
+        status.textContent =
+          "Zuletzt aktualisiert: " +
+          new Date().toLocaleTimeString("de-DE", {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+
+      } catch (fehler) {
+        liste.replaceChildren();
+        status.textContent =
+          "Abfahrten konnten nicht geladen werden. " +
+          "Möglicherweise blockiert der Browser den Datenzugriff.";
       }
     }
 
     ladeWetter();
+    ladeKVB();
+    setInterval(ladeKVB, 60000);
   </script>
 </body>
 </html>
