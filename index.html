@@ -254,12 +254,18 @@ const url =
             minute: "2-digit"
           });
 
+    
+      
       } catch (fehler) {
-        liste.replaceChildren();
-        status.textContent =
-          "Abfahrten konnten nicht geladen werden. " +
-          "Möglicherweise blockiert der Browser den Datenzugriff.";
-      }
+  liste.replaceChildren();
+  status.textContent =
+    "KVB-Fehler: " + fehler.message;
+  console.error("KVB-Fehler:", fehler);
+}
+      
+      
+      
+    
     }
 
     ladeWetter();
