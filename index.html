@@ -399,7 +399,7 @@ async function ladeAbfalltermine() {
   const liste = document.getElementById("abfall-termine");
 
   try {
-    const antwort = await fetch("abfalltermine.json");
+    const antwort = await fetch("Abfalltermine.json");
     if (!antwort.ok) {
       throw new Error("Abfuhrtermine konnten nicht geladen werden.");
     }
