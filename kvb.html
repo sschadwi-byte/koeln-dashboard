@@ -184,13 +184,24 @@ async function ladeStation(station) {
 
     const daten = await antwort.json();
 
-    const abfahrten = (daten.train || [])
-      .filter(fahrt =>
-        erlaubteLinien.includes(String(fahrt.train || "").trim())
-      )
-      .sort((a, b) => (a.time || a.scheduledTime || 0) -
-                      (b.time || b.scheduledTime || 0))
-      .slice(0, 8);
+const abfahrten = (Array.isArray(daten.train) ? daten.train : [])
+  .filter(fahrt =>
+    erlaubteLinien.includes(String(fahrt.train || "").trim())
+  )
+  .sort((a, b) =>
+    (a.time || a.scheduledTime || 0) -
+    (b.time || b.scheduledTime || 0)
+  )
+  .slice(0, 8);
+
+
+
+    
+
+
+
+    
+
 
     liste.replaceChildren();
 
