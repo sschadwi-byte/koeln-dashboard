@@ -232,10 +232,22 @@ async function ladeKVB() {
       ? daten
       : (daten.departures || []);
 
-    const gefiltert = abfahrten
-      .filter(a => ["4", "260"].includes(String(a.train)))
-      .sort((a, b) => (a.time || a.scheduledTime) -
-                      (b.time || b.scheduledTime));
+
+const jetzt = Math.floor(Date.now() / 1000);
+const eineStunde = jetzt + 60 * 60;
+
+const gefiltert = abfahrten
+  .filter(a => {
+    const zeit = a.time || a.scheduledTime;
+    return ["4", "260"].includes(String(a.train)) &&
+           zeit >= jetzt &&
+           zeit <= eineStunde;
+  })
+  .sort((a, b) => (a.time || a.scheduledTime) -
+                  (b.time || b.scheduledTime));
+    
+
+
 
     if (gefiltert.length === 0) {
       status.textContent =
