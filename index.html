@@ -140,60 +140,97 @@
         day: "numeric"
       });
 
-    async function ladeWetter() {
-      const ausgabe = document.getElementById("wetter");
 
-      try {
-        const url =
-          "https://api.open-meteo.com/v1/forecast" +
-          "?latitude=50.99&longitude=7.03" +
-          "&current=temperature_2m,relative_humidity_2m," +
-          "weather_code,wind_speed_10m" +
-          "&timezone=Europe%2FBerlin";
+async function ladeWetter() {
+  const ausgabe = document.getElementById("wetter");
 
-        const antwort = await fetch(url);
+  try {
+    const url =
+      "https://api.open-meteo.com/v1/forecast" +
+      "?latitude=50.99&longitude=7.03" +
+      "&current=temperature_2m,relative_humidity_2m," +
+      "weather_code,wind_speed_10m" +
+      "&hourly=temperature_2m,precipitation_probability," +
+      "precipitation,weather_code" +
+      "&forecast_days=1" +
+      "&timezone=Europe%2FBerlin";
 
-        if (!antwort.ok) {
-          throw new Error("HTTP " + antwort.status);
-        }
+    const antwort = await fetch(url);
 
-        const daten = await antwort.json();
-        const aktuell = daten.current;
+    if (!antwort.ok) {
+      throw new Error("HTTP " + antwort.status);
+    }
 
-        const texte = {
-          0: "Sonnig",
-          1: "Überwiegend sonnig",
-          2: "Teilweise bewölkt",
-          3: "Bewölkt",
-          45: "Neblig",
-          48: "Nebel",
-          51: "Leichter Nieselregen",
-          53: "Nieselregen",
-          55: "Starker Nieselregen",
-          61: "Leichter Regen",
-          63: "Regen",
-          65: "Starker Regen",
-          71: "Leichter Schnee",
-          73: "Schneefall",
-          75: "Starker Schneefall",
-          80: "Regenschauer",
-          81: "Regenschauer",
-          82: "Starke Regenschauer",
-          95: "Gewitter"
-        };
+    const daten = await antwort.json();
+    const aktuell = daten.current;
+    const stunden = daten.hourly;
 
-        ausgabe.innerHTML =
-          "<strong>" + aktuell.temperature_2m + " °C</strong><br>" +
-          (texte[aktuell.weather_code] || "Wetterlage") + "<br>" +
-          "Luftfeuchtigkeit: " +
-          aktuell.relative_humidity_2m + " %<br>" +
-          "Wind: " + aktuell.wind_speed_10m + " km/h";
+    const texte = {
+      0: "Sonnig",
+      1: "Überwiegend sonnig",
+      2: "Teilweise bewölkt",
+      3: "Bewölkt",
+      45: "Neblig",
+      48: "Nebel",
+      51: "Leichter Nieselregen",
+      53: "Nieselregen",
+      55: "Starker Nieselregen",
+      61: "Leichter Regen",
+      63: "Regen",
+      65: "Starker Regen",
+      71: "Leichter Schnee",
+      73: "Schneefall",
+      75: "Starker Schneefall",
+      80: "Regenschauer",
+      81: "Regenschauer",
+      82: "Starke Regenschauer",
+      95: "Gewitter"
+    };
 
-      } catch (fehler) {
-        ausgabe.textContent =
-          "Wetter momentan nicht verfügbar.";
+    const formatUhrzeit = zeit =>
+      new Date(zeit).toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Berlin"
+      });
+
+    const jetzt = Date.now();
+
+    let prognose = "";
+
+    for (let i = 0; i < stunden.time.length; i++) {
+      const zeit = new Date(stunden.time[i]).getTime();
+
+      if (zeit > jetzt && zeit <= jetzt + 2 * 60 * 60 * 1000) {
+        const regen = stunden.precipitation[i] ?? 0;
+        const wahrscheinlichkeit =
+          stunden.precipitation_probability[i];
+
+        prognose +=
+          "<p><strong>" + formatUhrzeit(stunden.time[i]) +
+          " Uhr</strong> – " +
+          stunden.temperature_2m[i] + " °C<br>" +
+          (texte[stunden.weather_code[i]] || "Wetterlage") +
+          "<br>Regenwahrscheinlichkeit: " +
+          (wahrscheinlichkeit ?? "k. A.") + " %" +
+          "<br>Erwarteter Niederschlag: " +
+          regen.toLocaleString("de-DE") + " mm</p>";
       }
     }
+
+    ausgabe.innerHTML =
+      "<strong>Jetzt: " + aktuell.temperature_2m + " °C</strong><br>" +
+      (texte[aktuell.weather_code] || "Wetterlage") + "<br>" +
+      "Luftfeuchtigkeit: " + aktuell.relative_humidity_2m + " %<br>" +
+      "Wind: " + aktuell.wind_speed_10m + " km/h" +
+      "<hr><strong>Wetter in den nächsten 2 Stunden</strong>" +
+      (prognose || "<p>Keine Stundenprognose verfügbar.</p>");
+
+  } catch (fehler) {
+    ausgabe.textContent = "Wetter momentan nicht verfügbar.";
+  }
+}
+    
 
     function uhrzeit(iso) {
       if (!iso) return "";
