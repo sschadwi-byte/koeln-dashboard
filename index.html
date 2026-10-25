@@ -96,14 +96,36 @@
     </a>
   </div>
 
-  <div class="karte">
-    <h2>⛽ Tankstellenpreise</h2>
-    <p>Aktuelle Preise in deiner Umgebung:</p>
-    <a href="https://www.clever-tanken.de/"
-       target="_blank" rel="noopener">
-      Tankstellenpreise öffnen →
-    </a>
-  </div>
+
+<div class="karte">
+  <h2>⛽ Tankstellenpreise</h2>
+  <p>Super E10 im Umkreis von 5 km um Köln-Dünnwald</p>
+
+  <button onclick="ladeBenzinpreise()">
+    Preise aktualisieren
+  </button>
+
+  <p id="benzin-status">Tippe auf „Preise aktualisieren“.</p>
+  <div id="benzin-ergebnis"></div>
+
+  <p>
+    <small>
+      Preisdaten von
+      <a href="https://www.tankerkoenig.de/" target="_blank" rel="noopener">
+        Tankerkönig
+      </a>
+      · Lizenz
+      <a href="https://creativecommons.org/licenses/by/4.0/deed.de"
+         target="_blank" rel="noopener">CC BY 4.0</a>
+    </small>
+  </p>
+</div>
+  
+
+
+
+
+  
 
   <p class="hinweis">
     Wetterdaten: Open-Meteo. Abfahrtsdaten: VRR-EFA.
