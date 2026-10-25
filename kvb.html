@@ -190,18 +190,34 @@ async function ladeStation(station) {
     console.log("API-Antwort:", daten);
 console.log("Erster Eintrag:", daten.train?.[0]);
 
-const abfahrten = (Array.isArray(daten.train) ? daten.train : [])
-  .filter(fahrt =>
-    erlaubteLinien.includes(String(fahrt.train || "").trim())
-  )
-  .sort((a, b) =>
-    (a.time || a.scheduledTime || 0) -
-    (b.time || b.scheduledTime || 0)
-  )
+
+
+
+    
+
+
+
+
+const abfahrten = (
+  daten.stopEvents ||
+  daten.departureList ||
+  daten.train ||
+  []
+)
+  .filter(fahrt => {
+    const linie = String(
+      fahrt.transportation?.disassembledName ||
+      fahrt.transportation?.name ||
+      fahrt.servingLine?.name ||
+      fahrt.train ||
+      fahrt.line ||
+      ""
+    ).replace(/^(Tram|Bus|U-Bahn)\s*/i, "").trim();
+
+    return ["4", "18", "260"].includes(linie);
+  })
   .slice(0, 8);
-
-
-
+    
     
 
 
