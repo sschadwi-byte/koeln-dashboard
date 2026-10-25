@@ -107,6 +107,7 @@
     <h1>🚋 KVB – Abfahrten</h1>
     <p>Linien 4, 18 und 260</p>
     <p id="aktualisiert">Abfahrtsdaten werden vorbereitet …</p>
+    <p id="uhrzeit">Aktuelle Uhrzeit wird geladen …</p>
     <p><a href="./">Zum Köln-Dashboard</a></p>
   </header>
 
@@ -290,6 +291,22 @@ async function starteAktualisierung() {
   setTimeout(starteAktualisierung, 60000);
 }
 
+
+function aktualisiereUhrzeit() {
+  document.getElementById("uhrzeit").textContent =
+    "Aktuelle Uhrzeit: " +
+    new Date().toLocaleTimeString("de-DE", {
+      timeZone: "Europe/Berlin",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+}
+
+aktualisiereUhrzeit();
+setInterval(aktualisiereUhrzeit, 1000);
+
+  
 starteAktualisierung();
 </script>
   
