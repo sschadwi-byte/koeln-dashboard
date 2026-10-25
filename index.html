@@ -433,10 +433,26 @@ for (const [index, termin] of naechste.entries()) {
   li.style.padding = "10px 12px";
   li.style.borderRadius = "10px";
   li.style.background = index === 0 ? "#e8f4ea" : "#f4f6f8";
-  li.style.borderLeft = index === 0
-    ? "4px solid #25834a"
-    : "4px solid #cbd5e1";
 
+
+
+const farben = {
+  "Restmüll": "#777777",
+  "Wertstoff": "#F2C500",
+  "Bio": "#8B5A2B",
+  "Papier": "#2878C8"
+};
+
+const farbe = Object.entries(farben)
+  .find(([art]) => termin.art.includes(art))?.[1] || "#cbd5e1";
+
+li.style.borderLeft = `5px solid ${farbe}`;
+  
+
+
+  
+
+  
   const datumText = datum.toLocaleDateString("de-DE", {
     weekday: "short",
     day: "2-digit",
