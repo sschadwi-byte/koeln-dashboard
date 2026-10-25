@@ -95,6 +95,14 @@
       margin-top: 3px;
     }
 
+
+.dr-ingend {
+  color: red !important;
+  font-weight: bold;
+}
+
+
+    
     .status {
       color: #64748b;
       font-size: 14px;
@@ -244,14 +252,29 @@ const antwort = await fetch(url);
       const zeit = document.createElement("div");
       zeit.className = "zeit";
 
-      const zeitstempel = Number(fahrt.time || fahrt.scheduledTime);
-      zeit.textContent = new Date(zeitstempel * 1000)
-        .toLocaleTimeString("de-DE", {
-          hour: "2-digit",
-          minute: "2-digit",
-          timeZone: "Europe/Berlin"
-        });
 
+
+      
+    
+
+
+const abfahrtInMinuten = (zeitstempel - Date.now() / 1000) / 60;
+
+zeit.textContent = new Date(zeitstempel * 1000)
+  .toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin"
+  });
+
+if (abfahrtInMinuten >= 0 && abfahrtInMinuten <= 10) {
+  zeit.classList.add("dr-ingend");
+}
+
+
+
+
+      
       if (Number(fahrt.delay) > 0) {
         zeit.textContent += " · +" + fahrt.delay + " Min.";
       }
