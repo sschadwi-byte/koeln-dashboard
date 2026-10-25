@@ -1,1 +1,140 @@
 
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KVB – Abfahrten</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    header {
+      max-width: 900px;
+      margin: 0 auto 20px;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+    }
+
+    #aktualisiert {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .haltestelle {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px #0000000d;
+    }
+
+    .haltestelle h2 {
+      margin-top: 0;
+      font-size: 19px;
+    }
+
+    .abfahrten {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .abfahrten li {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .linie {
+      display: inline-block;
+      min-width: 38px;
+      padding: 6px 4px;
+      border-radius: 7px;
+      background: #e2e8f0;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .info {
+      flex: 1;
+    }
+
+    .ziel {
+      font-weight: 600;
+    }
+
+    .zeit {
+      color: #475569;
+      font-size: 14px;
+      margin-top: 3px;
+    }
+
+    .status {
+      color: #64748b;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🚋 KVB – Abfahrten</h1>
+    <p>Linien 4, 18 und 260</p>
+    <p id="aktualisiert">Abfahrtsdaten werden vorbereitet …</p>
+    <p><a href="./">Zum Köln-Dashboard</a></p>
+  </header>
+
+  <main>
+    <section class="haltestelle">
+      <h2>Köln Dünnwald Leuchterstraße</h2>
+      <ul class="abfahrten" id="station-1">
+        <li class="status">Daten werden geladen …</li>
+      </ul>
+    </section>
+
+    <section class="haltestelle">
+      <h2>Köln Deutz Messeplatz</h2>
+      <ul class="abfahrten" id="station-2">
+        <li class="status">Daten werden geladen …</li>
+      </ul>
+    </section>
+
+    <section class="haltestelle">
+      <h2>Köln Deutz LANXESS arena</h2>
+      <ul class="abfahrten" id="station-3">
+        <li class="status">Daten werden geladen …</li>
+      </ul>
+    </section>
+
+    <section class="haltestelle">
+      <h2>Ebertplatz</h2>
+      <ul class="abfahrten" id="station-4">
+        <li class="status">Daten werden geladen …</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
+
