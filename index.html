@@ -423,19 +423,42 @@ async function ladeAbfalltermine() {
       return;
     }
 
-    for (const termin of naechste) {
-      const li = document.createElement("li");
-      const datum = new Date(termin.datum + "T12:00:00");
 
-      li.textContent =
-        datum.toLocaleDateString("de-DE", {
-          weekday: "short",
-          day: "2-digit",
-          month: "2-digit"
-        }) + ": " + termin.art;
+for (const [index, termin] of naechste.entries()) {
+  const li = document.createElement("li");
+  const datum = new Date(termin.datum + "T12:00:00");
 
-      liste.appendChild(li);
-    }
+  li.style.listStyle = "none";
+  li.style.margin = "8px 0";
+  li.style.padding = "10px 12px";
+  li.style.borderRadius = "10px";
+  li.style.background = index === 0 ? "#e8f4ea" : "#f4f6f8";
+  li.style.borderLeft = index === 0
+    ? "4px solid #25834a"
+    : "4px solid #cbd5e1";
+
+  const datumText = datum.toLocaleDateString("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit"
+  });
+
+  const datumZeile = document.createElement("strong");
+  datumZeile.textContent = datumText;
+  datumZeile.style.display = "block";
+  datumZeile.style.marginBottom = "4px";
+
+  const artZeile = document.createElement("span");
+  artZeile.textContent = termin.art;
+
+  li.append(datumZeile, artZeile);
+  liste.appendChild(li);
+}
+
+
+
+
+    
   } catch (fehler) {
     liste.textContent = "Termine konnten nicht geladen werden.";
     console.error(fehler);
