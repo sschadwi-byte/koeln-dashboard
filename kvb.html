@@ -144,6 +144,7 @@
 
 
 
+
 <script>
 const stationen = [
   { id: "station-1", name: "Köln Dünnwald Leuchterstr." },
@@ -154,21 +155,14 @@ const stationen = [
 
 const erlaubteLinien = ["4", "18", "260"];
 
-function uhrzeit(zeitstempel) {
-  if (zeitstempel == null) return "Zeit unbekannt";
-
-  const datum = new Date(Number(zeitstempel) * 1000);
-  if (Number.isNaN(datum.getTime())) return "Zeit unbekannt";
-
-  return datum.toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
-
 async function ladeStation(station) {
-  const liste = document.getElementById(station.id);
-  liste.textContent = "Abfahrten werden geladen …";
+  const status = document.getElementById(station.id);
+  status.replaceChildren();
+
+  const ladehinweis = document.createElement("li");
+  ladehinweis.className = "status";
+  ladehinweis.textContent = "Abfahrten werden geladen …";
+  status.appendChild(ladehinweis);
 
   try {
     const url =
@@ -184,38 +178,42 @@ async function ladeStation(station) {
 
     const daten = await antwort.json();
 
-    // Die DBF-Antwort enthält die Abfahrten unter "train".
-    const alleAbfahrten = Array.isArray(daten.train)
-      ? daten.train
-      : [];
+    // Dieselbe Abfragelogik wie im Köln-Dashboard,
+    // zusätzlich kompatibel mit dem beobachteten train-Array.
+    const abfahrten = Array.isArray(daten)
+      ? daten
+      : (daten.departures || daten.train || []);
 
-    console.log("Haltestelle:", station.name);
-    console.log("Erste API-Abfahrt:", alleAbfahrten[0]);
-    console.log(
-      "Gelieferte Linien:",
-      alleAbfahrten.map(fahrt => fahrt.train)
-    );
+    const jetzt = Math.floor(Date.now() / 1000);
+    const eineStunde = jetzt + 60 * 60;
 
-const abfahrten = (daten.train || [])
-  .filter(fahrt =>
-    ["4", "18", "260"].includes(String(fahrt.train || "").trim())
-  )
-  .slice(0, 8);
+    const gefiltert = abfahrten
+      .filter(a => {
+        const linie = String(a.train || "").trim();
+        const zeit = Number(a.time || a.scheduledTime || 0);
 
+        return erlaubteLinien.includes(linie) &&
+               zeit >= jetzt &&
+               zeit <= eineStunde;
+      })
+      .sort((a, b) =>
+        Number(a.time || a.scheduledTime || 0) -
+        Number(b.time || b.scheduledTime || 0)
+      )
+      .slice(0, 8);
 
+    status.replaceChildren();
 
-
-    liste.replaceChildren();
-
-    if (abfahrten.length === 0) {
-      liste.textContent =
-        alleAbfahrten.length === 0
-          ? "Die API liefert keine Abfahrten."
-          : "Keine Abfahrten der Linien 4, 18 oder 260 gefunden.";
+    if (gefiltert.length === 0) {
+      const hinweis = document.createElement("li");
+      hinweis.className = "status";
+      hinweis.textContent =
+        "Momentan keine Abfahrten der Linien 4, 18 oder 260 innerhalb der nächsten Stunde.";
+      status.appendChild(hinweis);
       return;
     }
 
-    for (const fahrt of abfahrten) {
+    for (const fahrt of gefiltert) {
       const eintrag = document.createElement("li");
 
       const linie = document.createElement("span");
@@ -227,27 +225,39 @@ const abfahrten = (daten.train || [])
 
       const ziel = document.createElement("div");
       ziel.className = "ziel";
-      ziel.textContent = fahrt.destination || "Ziel unbekannt";
+      ziel.textContent =
+        "Richtung " +
+        (fahrt.destination || fahrt.direction || "unbekannt");
 
       const zeit = document.createElement("div");
       zeit.className = "zeit";
-      zeit.textContent = uhrzeit(fahrt.time ?? fahrt.scheduledTime);
+
+      const zeitstempel = Number(fahrt.time || fahrt.scheduledTime);
+      zeit.textContent = new Date(zeitstempel * 1000)
+        .toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Europe/Berlin"
+        });
 
       if (Number(fahrt.delay) > 0) {
         zeit.textContent += " · +" + fahrt.delay + " Min.";
       }
 
-      if (fahrt.isCancelled === true) {
-        zeit.textContent += " · Fällt aus";
-      }
-
       info.append(ziel, zeit);
       eintrag.append(linie, info);
-      liste.append(eintrag);
+      status.appendChild(eintrag);
     }
   } catch (fehler) {
-    liste.textContent = "Abfahrten konnten nicht geladen werden.";
-    console.error("Fehler bei " + station.name + ":", fehler);
+    status.replaceChildren();
+
+    const meldung = document.createElement("li");
+    meldung.className = "status";
+    meldung.textContent =
+      "Abfahrten konnten nicht geladen werden. Bitte später erneut versuchen.";
+
+    status.appendChild(meldung);
+    console.error("KVB-Fehler bei " + station.name + ":", fehler);
   }
 }
 
@@ -264,12 +274,14 @@ async function ladeAlleStationen() {
     });
 }
 
-ladeAlleStationen();
-setInterval(ladeAlleStationen, 60000);
+async function starteAktualisierung() {
+  await ladeAlleStationen();
+  setTimeout(starteAktualisierung, 60000);
+}
+
+starteAktualisierung();
 </script>
   
-
-
 
 
 
