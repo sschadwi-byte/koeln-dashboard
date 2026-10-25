@@ -436,6 +436,10 @@ for (const [index, termin] of naechste.entries()) {
 
 
 
+
+
+  
+
 const farben = {
   "Restmüll": "#777777",
   "Wertstoff": "#F2C500",
@@ -443,13 +447,40 @@ const farben = {
   "Papier": "#2878C8"
 };
 
-const farbe = Object.entries(farben)
-  .find(([art]) => termin.art.includes(art))?.[1] || "#cbd5e1";
+const enthalteneFarben = Object.entries(farben)
+  .filter(([art]) => termin.art.includes(art))
+  .map(([, farbe]) => farbe);
 
-li.style.borderLeft = `5px solid ${farbe}`;
+li.style.borderLeft = "none";
+li.style.borderRadius = "0 10px 10px 0";
+li.style.position = "relative";
+
+const farbstreifen = document.createElement("div");
+farbstreifen.style.position = "absolute";
+farbstreifen.style.left = "0";
+farbstreifen.style.top = "0";
+farbstreifen.style.bottom = "0";
+farbstreifen.style.display = "flex";
+farbstreifen.style.width = "6px";
+farbstreifen.style.flexDirection = "column";
+farbstreifen.style.overflow = "hidden";
+farbstreifen.style.borderRadius = "10px 0 0 10px";
+
+for (const farbe of enthalteneFarben) {
+  const streifen = document.createElement("span");
+  streifen.style.backgroundColor = farbe;
+  streifen.style.flex = "1";
+  farbstreifen.appendChild(streifen);
+}
+
+li.style.paddingLeft = "16px";
+li.appendChild(farbstreifen);
+
+
+
+
+
   
-
-
   
 
   
