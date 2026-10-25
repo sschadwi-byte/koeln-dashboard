@@ -234,6 +234,68 @@ async function ladeKVB() {
     ladeWetter();
     ladeKVB();
     setInterval(ladeKVB, 60000);
+
+
+
+async function ladeBenzinpreise() {
+  const status = document.getElementById("benzin-status");
+  const ergebnis = document.getElementById("benzin-ergebnis");
+
+  status.textContent = "Preise werden geladen …";
+  ergebnis.replaceChildren();
+
+  try {
+    const antwort = await fetch(
+      "https://koeln-benzinpreise.sschadwi.workers.dev/"
+    );
+    const daten = await antwort.json();
+
+    if (!antwort.ok || !daten.ok) {
+      throw new Error(daten.message || "Abruf fehlgeschlagen");
+    }
+
+    if (!daten.stations || daten.stations.length === 0) {
+      status.textContent = "Keine Preise gefunden.";
+      return;
+    }
+
+    status.textContent = "Günstigste gefundene E10-Preise:";
+
+    daten.stations.forEach(t => {
+      const eintrag = document.createElement("p");
+      const name = document.createElement("strong");
+      name.textContent = t.brand || t.name || "Tankstelle";
+
+      const details = document.createElement("div");
+      details.textContent =
+        `${t.street || ""} ${t.houseNumber || ""}, ` +
+        `${t.dist.toFixed(1)} km · ` +
+        `${t.isOpen ? "Geöffnet" : "Geschlossen"}`;
+
+      const preis = document.createElement("div");
+      preis.textContent = typeof t.price === "number"
+        ? `${t.price.toFixed(3).replace(".", ",")} €/Liter`
+        : "Preis nicht verfügbar";
+
+      eintrag.append(name, preis, details);
+      ergebnis.appendChild(eintrag);
+    });
+
+    const zeit = document.createElement("small");
+    zeit.textContent =
+      "Abfrage: " + new Date().toLocaleTimeString("de-DE");
+    ergebnis.appendChild(zeit);
+
+  } catch (fehler) {
+    status.textContent =
+      "Preise konnten nicht geladen werden. Bitte später erneut versuchen.";
+  }
+}
+    
+
+
+
+    
   </script>
 </body>
 </html>
