@@ -142,30 +142,33 @@
 
 
 
+
+
+
+
+
 <script>
 const stationen = [
-  {
-    id: "station-1",
-    name: "Köln Dünnwald Leuchterstr."
-  },
-  {
-    id: "station-2",
-    name: "Köln Deutz Messeplatz"
-  },
-  {
-    id: "station-3",
-    name: "Köln Deutz LANXESS arena"
-  },
-  {
-    id: "station-4",
-    name: "Ebertplatz"
-  }
+  { id: "station-1", name: "Köln Dünnwald Leuchterstr." },
+  { id: "station-2", name: "Köln Deutz Messeplatz" },
+  { id: "station-3", name: "Köln Deutz LANXESS arena" },
+  { id: "station-4", name: "Ebertplatz" }
 ];
 
 const erlaubteLinien = ["4", "18", "260"];
 
+function uhrzeit(zeitstempel) {
+  if (!zeitstempel) return "Zeit unbekannt";
+
+  return new Date(zeitstempel * 1000).toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 async function ladeStation(station) {
   const liste = document.getElementById(station.id);
+  liste.textContent = "Abfahrten werden geladen …";
 
   try {
     const url =
@@ -182,29 +185,27 @@ async function ladeStation(station) {
     const daten = await antwort.json();
 
     const abfahrten = (daten.train || [])
-      .filter(fahrt => {
-        const linie = String(fahrt.line || "")
-          .replace(/^(Tram|Bus|U-Bahn)\s*/i, "")
-          .trim();
-
-        return erlaubteLinien.includes(linie);
-      })
+      .filter(fahrt =>
+        erlaubteLinien.includes(String(fahrt.train || "").trim())
+      )
+      .sort((a, b) => (a.time || a.scheduledTime || 0) -
+                      (b.time || b.scheduledTime || 0))
       .slice(0, 8);
 
     liste.replaceChildren();
 
     if (abfahrten.length === 0) {
       liste.textContent =
-        "Keine passenden Abfahrten gefunden.";
+        "Keine Abfahrten der Linien 4, 18 oder 260 gefunden.";
       return;
     }
 
     for (const fahrt of abfahrten) {
-      const li = document.createElement("li");
+      const eintrag = document.createElement("li");
 
       const linie = document.createElement("span");
       linie.className = "linie";
-      linie.textContent = fahrt.line || "?";
+      linie.textContent = fahrt.train;
 
       const info = document.createElement("div");
       info.className = "info";
@@ -216,39 +217,44 @@ async function ladeStation(station) {
       const zeit = document.createElement("div");
       zeit.className = "zeit";
 
-      let zeitText = fahrt.time || fahrt.scheduledTime || "";
+      const abfahrtszeit = fahrt.time || fahrt.scheduledTime;
+      zeit.textContent = uhrzeit(abfahrtszeit);
 
-      if (fahrt.delay) {
-        zeitText += " · Verspätung: " + fahrt.delay;
+      if (Number(fahrt.delay) > 0) {
+        zeit.textContent += " · +" + fahrt.delay + " Min.";
       }
 
-      zeit.textContent = zeitText;
+      if (fahrt.isCancelled === true) {
+        zeit.textContent += " · Fällt aus";
+      }
+
       info.append(ziel, zeit);
-      li.append(linie, info);
-      liste.appendChild(li);
+      eintrag.append(linie, info);
+      liste.append(eintrag);
     }
   } catch (fehler) {
-    liste.textContent =
-      "Abfahrten konnten nicht geladen werden.";
-    console.error(station.name, fehler);
+    liste.textContent = "Abfahrten konnten nicht geladen werden.";
+    console.error("Fehler bei " + station.name + ":", fehler);
   }
 }
 
 async function ladeAlleStationen() {
-  await Promise.all(stationen.map(ladeStation));
+  for (const station of stationen) {
+    await ladeStation(station);
+  }
 
   document.getElementById("aktualisiert").textContent =
     "Zuletzt aktualisiert: " +
     new Date().toLocaleTimeString("de-DE", {
       hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit"
+      minute: "2-digit"
     });
 }
 
 ladeAlleStationen();
 setInterval(ladeAlleStationen, 60000);
 </script>
+
 </body>
 </html>
 
