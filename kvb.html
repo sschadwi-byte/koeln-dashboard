@@ -16,7 +16,7 @@
 
     
     body {
-      margin: 0;i
+      margin: 0;
       padding: 16px;
       font-family: Arial, sans-serif;
       background: #f1f5f9;
@@ -144,24 +144,23 @@
 
 
 
-
-
-
 <script>
 const stationen = [
   { id: "station-1", name: "Köln Dünnwald Leuchterstr." },
   { id: "station-2", name: "Bf Deutz/Messeplatz" },
-   { id: "station-3", name: "Bf Deutz/LANXESS arena" },
-  
+  { id: "station-3", name: "Bf Deutz/LANXESS arena" },
   { id: "station-4", name: "Ebertplatz" }
 ];
 
 const erlaubteLinien = ["4", "18", "260"];
 
 function uhrzeit(zeitstempel) {
-  if (!zeitstempel) return "Zeit unbekannt";
+  if (zeitstempel == null) return "Zeit unbekannt";
 
-  return new Date(zeitstempel * 1000).toLocaleTimeString("de-DE", {
+  const datum = new Date(Number(zeitstempel) * 1000);
+  if (Number.isNaN(datum.getTime())) return "Zeit unbekannt";
+
+  return datum.toLocaleTimeString("de-DE", {
     hour: "2-digit",
     minute: "2-digit"
   });
@@ -179,57 +178,41 @@ async function ladeStation(station) {
 
     const antwort = await fetch(url);
 
-    
-
     if (!antwort.ok) {
       throw new Error("HTTP " + antwort.status);
     }
 
     const daten = await antwort.json();
 
-    console.log("API-Antwort:", daten);
-console.log("Erster Eintrag:", daten.train?.[0]);
+    // Die DBF-Antwort enthält die Abfahrten unter "train".
+    const alleAbfahrten = Array.isArray(daten.train)
+      ? daten.train
+      : [];
 
+    console.log("Haltestelle:", station.name);
+    console.log("Erste API-Abfahrt:", alleAbfahrten[0]);
+    console.log(
+      "Gelieferte Linien:",
+      alleAbfahrten.map(fahrt => fahrt.train)
+    );
 
-
-
-    
-
-
-
-
-const abfahrten = (
-  daten.stopEvents ||
-  daten.departureList ||
-  daten.train ||
-  []
-)
-  .filter(fahrt => {
-    const linie = String(
-      fahrt.transportation?.disassembledName ||
-      fahrt.transportation?.name ||
-      fahrt.servingLine?.name ||
-      fahrt.train ||
-      fahrt.line ||
-      ""
-    ).replace(/^(Tram|Bus|U-Bahn)\s*/i, "").trim();
-
-    return ["4", "18", "260"].includes(linie);
-  })
-  .slice(0, 8);
-    
-    
-
-
-
-    
-
+    const abfahrten = alleAbfahrten
+      .filter(fahrt =>
+        erlaubteLinien.includes(String(fahrt.train || "").trim())
+      )
+      .sort((a, b) =>
+        Number(a.time || a.scheduledTime || 0) -
+        Number(b.time || b.scheduledTime || 0)
+      )
+      .slice(0, 8);
 
     liste.replaceChildren();
 
     if (abfahrten.length === 0) {
       liste.textContent =
-        "Keine Abfahrten der Linien 4, 18 oder 260 gefunden.";
+        alleAbfahrten.length === 0
+          ? "Die API liefert keine Abfahrten."
+          : "Keine Abfahrten der Linien 4, 18 oder 260 gefunden.";
       return;
     }
 
@@ -238,7 +221,7 @@ const abfahrten = (
 
       const linie = document.createElement("span");
       linie.className = "linie";
-      linie.textContent = fahrt.train;
+      linie.textContent = String(fahrt.train);
 
       const info = document.createElement("div");
       info.className = "info";
@@ -249,9 +232,7 @@ const abfahrten = (
 
       const zeit = document.createElement("div");
       zeit.className = "zeit";
-
-      const abfahrtszeit = fahrt.time || fahrt.scheduledTime;
-      zeit.textContent = uhrzeit(abfahrtszeit);
+      zeit.textContent = uhrzeit(fahrt.time ?? fahrt.scheduledTime);
 
       if (Number(fahrt.delay) > 0) {
         zeit.textContent += " · +" + fahrt.delay + " Min.";
@@ -287,10 +268,13 @@ async function ladeAlleStationen() {
 ladeAlleStationen();
 setInterval(ladeAlleStationen, 60000);
 </script>
+  
 
-</body>
-</html>
 
+
+
+
+  
 
 
   
