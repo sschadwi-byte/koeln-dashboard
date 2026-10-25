@@ -148,27 +148,14 @@
 <script>}
 
 const stationen = [
-  {
-    id: "station-1",
-    name: "Köln Dünnwald Leuchterstr."
-  },
-  {
-    id: "station-2",
-    name: "Bf Deutz/Messeplatz"
-  },
-  {
-    id: "station-3",
-    name: "900000802",
-    istId: true
-  },
-  {
-    id: "station-4",
-    name: "Ebertplatz"
-  }
+  { id: "station-1", name: "Köln Dünnwald Leuchterstr." },
+  { id: "station-2", name: "Bf Deutz/Messeplatz" },
+  { id: "station-3", name: "Bf Deutz/LANXESS arena" },
+  { id: "station-4", name: "Ebertplatz" }
 ];
 
-  
 
+  
 
 
   
@@ -184,16 +171,16 @@ async function ladeStation(station) {
   status.appendChild(ladehinweis);
 
   try {
-    
-const url = station.istId
-  ? "https://dbf.finalrewind.org/" +
-    encodeURIComponent(station.name) +
-    "?hafas=KVB"
-  : "https://dbf.finalrewind.org/" +
-    encodeURIComponent(station.name) +
-    ".json?hafas=KVB&version=3";
+
+const url =
+  "https://dbf.finalrewind.org/" +
+  encodeURIComponent(station.name) +
+  ".json?hafas=KVB&version=3";
 
 const antwort = await fetch(url);
+
+
+  
 
 
     if (!antwort.ok) {
