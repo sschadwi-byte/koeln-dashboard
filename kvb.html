@@ -178,11 +178,16 @@ async function ladeStation(station) {
 
     const antwort = await fetch(url);
 
+    
+
     if (!antwort.ok) {
       throw new Error("HTTP " + antwort.status);
     }
 
     const daten = await antwort.json();
+
+    console.log("API-Antwort:", daten);
+console.log("Erster Eintrag:", daten.train?.[0]);
 
 const abfahrten = (Array.isArray(daten.train) ? daten.train : [])
   .filter(fahrt =>
