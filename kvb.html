@@ -135,6 +135,122 @@
       </ul>
     </section>
   </main>
+
+
+
+<script>
+const stationen = [
+  {
+    id: "station-1",
+    name: "Köln Dünnwald Leuchterstr."
+  },
+  {
+    id: "station-2",
+    name: "Köln Deutz Messeplatz"
+  },
+  {
+    id: "station-3",
+    name: "Köln Deutz LANXESS arena"
+  },
+  {
+    id: "station-4",
+    name: "Ebertplatz"
+  }
+];
+
+const erlaubteLinien = ["4", "18", "260"];
+
+async function ladeStation(station) {
+  const liste = document.getElementById(station.id);
+
+  try {
+    const url =
+      "https://dbf.finalrewind.org/" +
+      encodeURIComponent(station.name) +
+      ".json?hafas=KVB&version=3";
+
+    const antwort = await fetch(url);
+
+    if (!antwort.ok) {
+      throw new Error("HTTP " + antwort.status);
+    }
+
+    const daten = await antwort.json();
+
+    const abfahrten = (daten.train || [])
+      .filter(fahrt => {
+        const linie = String(fahrt.line || "")
+          .replace(/^(Tram|Bus|U-Bahn)\s*/i, "")
+          .trim();
+
+        return erlaubteLinien.includes(linie);
+      })
+      .slice(0, 8);
+
+    liste.replaceChildren();
+
+    if (abfahrten.length === 0) {
+      liste.textContent =
+        "Keine passenden Abfahrten gefunden.";
+      return;
+    }
+
+    for (const fahrt of abfahrten) {
+      const li = document.createElement("li");
+
+      const linie = document.createElement("span");
+      linie.className = "linie";
+      linie.textContent = fahrt.line || "?";
+
+      const info = document.createElement("div");
+      info.className = "info";
+
+      const ziel = document.createElement("div");
+      ziel.className = "ziel";
+      ziel.textContent = fahrt.destination || "Ziel unbekannt";
+
+      const zeit = document.createElement("div");
+      zeit.className = "zeit";
+
+      let zeitText = fahrt.time || fahrt.scheduledTime || "";
+
+      if (fahrt.delay) {
+        zeitText += " · Verspätung: " + fahrt.delay;
+      }
+
+      zeit.textContent = zeitText;
+      info.append(ziel, zeit);
+      li.append(linie, info);
+      liste.appendChild(li);
+    }
+  } catch (fehler) {
+    liste.textContent =
+      "Abfahrten konnten nicht geladen werden.";
+    console.error(station.name, fehler);
+  }
+}
+
+async function ladeAlleStationen() {
+  await Promise.all(stationen.map(ladeStation));
+
+  document.getElementById("aktualisiert").textContent =
+    "Zuletzt aktualisiert: " +
+    new Date().toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+}
+
+ladeAlleStationen();
+setInterval(ladeAlleStationen, 60000);
+</script>
+</body>
+</html>
+
+
+
+  
 </body>
 </html>
 
