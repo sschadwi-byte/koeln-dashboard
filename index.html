@@ -209,26 +209,69 @@
       });
     }
 
+
 async function ladeKVB() {
   const status = document.getElementById("kvb-status");
   const liste = document.getElementById("kvb-abfahrten");
 
   liste.replaceChildren();
+  status.textContent = "KVB-Abfahrten werden geladen …";
 
-  const tafel = document.createElement("iframe");
-  tafel.src =
-    "https://dbf.finalrewind.org/K%C3%B6ln%20D%C3%BCnnwald%20Leuchterstr.?hafas=KVB";
-  tafel.title = "KVB-Abfahrten Leuchterstraße";
-  tafel.style.width = "100%";
-  tafel.style.height = "420px";
-  tafel.style.border = "0";
-  tafel.loading = "lazy";
+  try {
+    const url =
+      "https://dbf.finalrewind.org/K%C3%B6ln%20D%C3%BCnnwald%20Leuchterstr..json?hafas=KVB&version=3";
 
-  liste.appendChild(tafel);
+    const antwort = await fetch(url);
 
-  status.textContent =
-    "Abfahrtstafel von Finalrewind";
+    if (!antwort.ok) {
+      throw new Error("Abruf fehlgeschlagen");
+    }
+
+    const daten = await antwort.json();
+    const abfahrten = Array.isArray(daten)
+      ? daten
+      : (daten.departures || []);
+
+    const gefiltert = abfahrten
+      .filter(a => ["4", "260"].includes(String(a.train)))
+      .sort((a, b) => (a.time || a.scheduledTime) -
+                      (b.time || b.scheduledTime));
+
+    if (gefiltert.length === 0) {
+      status.textContent =
+        "Momentan keine Abfahrten der Linien 4 oder 260 gefunden.";
+      return;
+    }
+
+    gefiltert.forEach(a => {
+      const eintrag = document.createElement("p");
+      const zeit = a.time || a.scheduledTime;
+
+      const uhrzeit = new Date(zeit * 1000)
+        .toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+
+      const linie = document.createElement("strong");
+      linie.textContent = `Linie ${a.train} – ${uhrzeit}`;
+
+      const ziel = document.createElement("div");
+      ziel.textContent = `Richtung ${a.destination || a.direction || "unbekannt"}`;
+
+      eintrag.append(linie, ziel);
+      liste.appendChild(eintrag);
+    });
+
+    status.textContent =
+      `Abfahrten der Linien 4 und 260 · Stand ${new Date().toLocaleTimeString("de-DE", {hour:"2-digit",minute:"2-digit"})}`;
+
+  } catch (fehler) {
+    status.textContent =
+      "Abfahrten konnten nicht geladen werden. Bitte später erneut versuchen.";
+  }
 }
+    
 
 
     ladeWetter();
