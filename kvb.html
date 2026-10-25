@@ -196,15 +196,14 @@ async function ladeStation(station) {
       alleAbfahrten.map(fahrt => fahrt.train)
     );
 
-    const abfahrten = alleAbfahrten
-      .filter(fahrt =>
-        erlaubteLinien.includes(String(fahrt.train || "").trim())
-      )
-      .sort((a, b) =>
-        Number(a.time || a.scheduledTime || 0) -
-        Number(b.time || b.scheduledTime || 0)
-      )
-      .slice(0, 8);
+const abfahrten = (daten.train || [])
+  .filter(fahrt =>
+    ["4", "18", "260"].includes(String(fahrt.train || "").trim())
+  )
+  .slice(0, 8);
+
+
+
 
     liste.replaceChildren();
 
