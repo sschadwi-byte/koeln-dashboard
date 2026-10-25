@@ -249,15 +249,17 @@ const antwort = await fetch(url);
         "Richtung " +
         (fahrt.destination || fahrt.direction || "unbekannt");
 
-      const zeit = document.createElement("div");
-      zeit.className = "zeit";
-
-
 
       
-    
+      
 
 
+
+
+const zeit = document.createElement("div");
+zeit.className = "zeit";
+
+const zeitstempel = Number(fahrt.time || fahrt.scheduledTime);
 const abfahrtInMinuten = (zeitstempel - Date.now() / 1000) / 60;
 
 zeit.textContent = new Date(zeitstempel * 1000)
@@ -271,8 +273,30 @@ if (abfahrtInMinuten >= 0 && abfahrtInMinuten <= 10) {
   zeit.classList.add("dr-ingend");
 }
 
+if (Number(fahrt.delay) > 0) {
+  zeit.textContent += " · +" + fahrt.delay + " Min.";
+}
+      
 
 
+
+      
+zeit.textContent = new Date(zeitstempel * 1000)
+  .toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin"
+  });
+
+      
+if (abfahrtInMinuten >= 0 && abfahrtInMinuten <= 10) {
+  zeit.classList.add("dr-ingend");
+}
+
+
+
+
+      
 
       
       if (Number(fahrt.delay) > 0) {
