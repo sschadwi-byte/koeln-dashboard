@@ -395,6 +395,55 @@ async function ladeBenzinpreise() {
     
 
 
+async function ladeAbfalltermine() {
+  const liste = document.getElementById("abfall-termine");
+
+  try {
+    const antwort = await fetch("abfalltermine.json");
+    if (!antwort.ok) {
+      throw new Error("Abfuhrtermine konnten nicht geladen werden.");
+    }
+
+    const termine = await antwort.json();
+
+    // Heutiges Datum als lokales Datum im Format YYYY-MM-DD
+    const heute = new Date();
+    const heuteString =
+      `${heute.getFullYear()}-${String(heute.getMonth() + 1).padStart(2, "0")}-${String(heute.getDate()).padStart(2, "0")}`;
+
+    const naechste = termine
+      .filter(t => t.datum >= heuteString)
+      .sort((a, b) => a.datum.localeCompare(b.datum))
+      .slice(0, 5);
+
+    liste.replaceChildren();
+
+    if (naechste.length === 0) {
+      liste.textContent = "Keine weiteren Termine vorhanden.";
+      return;
+    }
+
+    for (const termin of naechste) {
+      const li = document.createElement("li");
+      const datum = new Date(termin.datum + "T12:00:00");
+
+      li.textContent =
+        datum.toLocaleDateString("de-DE", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit"
+        }) + ": " + termin.art;
+
+      liste.appendChild(li);
+    }
+  } catch (fehler) {
+    liste.textContent = "Termine konnten nicht geladen werden.";
+    console.error(fehler);
+  }
+}
+
+ladeAbfalltermine();
+    
 
     
   </script>
