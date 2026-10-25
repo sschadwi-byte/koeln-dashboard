@@ -206,6 +206,8 @@ const antwort = await fetch(url);
 
     const jetzt = Math.floor(Date.now() / 1000);
     const eineStunde = jetzt + 60 * 60;
+    const dreissigMinuten = jetzt + 30 * 60;
+    
 
     const gefiltert = abfahrten
       .filter(a => {
@@ -214,7 +216,8 @@ const antwort = await fetch(url);
 
         return erlaubteLinien.includes(linie) &&
                zeit >= jetzt &&
-               zeit <= eineStunde;
+              
+               zeit <= dreissigMinuten
       })
       .sort((a, b) =>
         Number(a.time || a.scheduledTime || 0) -
