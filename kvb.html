@@ -158,13 +158,17 @@ const stationen = [
   },
   {
     id: "station-3",
-    name: "900000802"
+    name: "900000802",
+    istId: true
   },
   {
     id: "station-4",
     name: "Ebertplatz"
   }
 ];
+
+  
+
 
 
   
@@ -180,12 +184,17 @@ async function ladeStation(station) {
   status.appendChild(ladehinweis);
 
   try {
-    const url =
-      "https://dbf.finalrewind.org/" +
-      encodeURIComponent(station.name) +
-      ".json?hafas=KVB&version=3";
+    
+const url = station.istId
+  ? "https://dbf.finalrewind.org/" +
+    encodeURIComponent(station.name) +
+    "?hafas=KVB"
+  : "https://dbf.finalrewind.org/" +
+    encodeURIComponent(station.name) +
+    ".json?hafas=KVB&version=3";
 
-    const antwort = await fetch(url);
+const antwort = await fetch(url);
+
 
     if (!antwort.ok) {
       throw new Error("HTTP " + antwort.status);
