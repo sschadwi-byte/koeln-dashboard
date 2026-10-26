@@ -183,14 +183,9 @@ async function ladeWetter() {
     const daten = await antwort.json();
     const aktuell = daten.current;
 
-const sonne = daten.daily;
-const sonnenaufgang = sonne.sunrise[0];
-const sonnenuntergang = sonne.sunset[0];
 
-const sonnenzeiten =
-  "<hr><strong>☀️ Sonne heute</strong><br>" +
-  "Sonnenaufgang: " + formatUhrzeit(sonnenaufgang) + " Uhr<br>" +
-  "Sonnenuntergang: " + formatUhrzeit(sonnenuntergang) + " Uhr";
+
+    
 
 
 
@@ -226,6 +221,17 @@ const sonnenzeiten =
         timeZone: "Europe/Berlin"
       });
 
+
+const sonne = daten.daily;
+const sonnenaufgang = sonne.sunrise[0];
+const sonnenuntergang = sonne.sunset[0];
+
+const sonnenzeiten =
+  "<hr><strong>☀️ Sonne heute</strong><br>" +
+  "Sonnenaufgang: " + formatUhrzeit(sonnenaufgang) + " Uhr<br>" +
+  "Sonnenuntergang: " + formatUhrzeit(sonnenuntergang) + " Uhr";
+
+    
     const jetzt = Date.now();
 
     let prognose = "";
