@@ -105,17 +105,63 @@
   </div>
   
 
-  <div class="karte">
-    <h2>🚗 Fahrzeit zum Ebertplatz</h2>
-    <p>Start: Am Puffelskooche 4</p>
-    <p>Ziel: Ebertplatz 2, Köln</p>
-    <a href="https://www.google.com/maps/dir/?api=1&origin=Am%20Puffelskooche%204%2C%20K%C3%B6ln&destination=Ebertplatz%202%2C%20K%C3%B6ln&travelmode=driving"
-       target="_blank" rel="noopener">
-      Route und Verkehrslage öffnen →
-    </a>
-  </div>
 
-  
+  <div class="karte">
+  <h2>🚗 Fahrzeit zum Ebertplatz</h2>
+  <p>Start: Am Puffelskooche 4</p>
+  <p>Ziel: Ebertplatz 2, Köln</p>
+
+  <p id="fahrzeit-status">Fahrzeit wird geladen ...</p>
+  <p id="verkehr-status"></p>
+  <p id="fahrzeit-aktualisiert"></p>
+
+  <a href="https://www.google.com/maps/dir/?api=1&origin=Am%20Puffelskooche%204%2C%20K%C3%B6ln&destination=Ebertplatz%202%2C%20K%C3%B6ln&travelmode=driving"
+     target="_blank" rel="noopener">
+    Route und Verkehrslage öffnen →
+  </a>
+</div>
+
+<script>
+async function ladeFahrzeit() {
+  const status = document.getElementById("fahrzeit-status");
+  const verkehr = document.getElementById("verkehr-status");
+  const aktualisiert = document.getElementById("fahrzeit-aktualisiert");
+
+  try {
+    const antwort = await fetch(
+      "https://koeln-benzinpreise.sschadwi.workers.dev/?route=ebtplatz"
+    );
+
+    const daten = await antwort.json();
+
+    if (!antwort.ok || !daten.ok) {
+      throw new Error("Fahrzeit konnte nicht geladen werden");
+    }
+
+    status.textContent =
+      "Aktuelle Fahrzeit: " + daten.travelTimeMinutes + " Minuten";
+
+    verkehr.textContent =
+      daten.trafficDelayMinutes > 0
+        ? "Verkehrsbedingte Verzögerung: " + daten.trafficDelayMinutes + " Minuten"
+        : "Keine zusätzliche Verkehrsverzögerung";
+
+    aktualisiert.textContent =
+      "Stand: " + new Date(daten.updatedAt).toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " Uhr";
+
+  } catch (fehler) {
+    status.textContent = "Fahrzeit derzeit nicht verfügbar";
+    verkehr.textContent = "";
+    aktualisiert.textContent = "";
+  }
+}
+
+ladeFahrzeit();
+setInterval(ladeFahrzeit, 5 * 60 * 1000);
+</script>
 
 
 
