@@ -105,20 +105,119 @@
   </div>
   
 
+<style>
+  .fahrzeit-karte {
+    background: white;
+    border: 2px solid #b8d3ed;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    color: #12345b;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  }
 
-  <div class="karte">
-  <h2>🚗 Fahrzeit zum Ebertplatz</h2>
-  <p>Start: Am Puffelskooche 4</p>
-  <p>Ziel: Ebertplatz 2, Köln</p>
+  .fahrzeit-kopf {
+    background: linear-gradient(110deg, #2169a8, #104b83);
+    color: white;
+    padding: 15px;
+    font-size: 1.35em;
+    font-weight: bold;
+  }
 
-  <p id="fahrzeit-status">Fahrzeit wird geladen ...</p>
-  <p id="verkehr-status"></p>
-  <p id="fahrzeit-aktualisiert"></p>
+  .fahrzeit-inhalt {
+    padding: 16px;
+  }
 
-  <a href="https://www.google.com/maps/dir/?api=1&origin=Am%20Puffelskooche%204%2C%20K%C3%B6ln&destination=Ebertplatz%202%2C%20K%C3%B6ln&travelmode=driving"
+  .fahrzeit-adressen {
+    font-size: 1em;
+    line-height: 1.7;
+    margin-bottom: 15px;
+  }
+
+  .fahrzeit-ergebnis {
+    background: #e5f9e7;
+    border: 2px solid #159447;
+    border-radius: 15px;
+    padding: 14px 8px;
+    text-align: center;
+    color: #087438;
+    margin-bottom: 14px;
+  }
+
+  .fahrzeit-zahl {
+    font-size: 2.8em;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+
+  .fahrzeit-label {
+    font-size: 1.05em;
+    font-weight: bold;
+  }
+
+  .fahrzeit-verkehr {
+    text-align: center;
+    font-size: 1.05em;
+    font-weight: bold;
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .fahrzeit-stand {
+    color: #526477;
+    font-size: 0.9em;
+    margin: 12px 0;
+  }
+
+  .fahrzeit-link {
+    display: block;
+    border-top: 2px solid #b8d3ed;
+    padding: 15px 8px;
+    color: #1261c5;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+</style>
+
+<div class="fahrzeit-karte">
+
+  <div class="fahrzeit-kopf">
+    🚗 Fahrzeit zum Ebertplatz
+  </div>
+
+  <div class="fahrzeit-inhalt">
+
+    <div class="fahrzeit-adressen">
+      Start: Am Puffelskooche 4<br>
+      Ziel: Ebertplatz 2, Köln
+    </div>
+
+    <div class="fahrzeit-ergebnis">
+      <div class="fahrzeit-zahl" id="fahrzeit-status">
+        -- Minuten
+      </div>
+      <div class="fahrzeit-label">
+        Aktuelle Fahrzeit
+      </div>
+    </div>
+
+    <div class="fahrzeit-verkehr" id="verkehr-status">
+      Verkehrslage wird geladen ...
+    </div>
+
+    <div class="fahrzeit-stand" id="fahrzeit-aktualisiert">
+      ↻ Daten werden abgerufen ...
+    </div>
+
+  </div>
+
+  <a class="fahrzeit-link"
+     href="https://www.google.com/maps/dir/?api=1&origin=Am%20Puffelskooche%204%2C%20K%C3%B6ln&destination=Ebertplatz%202%2C%20K%C3%B6ln&travelmode=driving"
      target="_blank" rel="noopener">
-    Route und Verkehrslage öffnen →
+    📍 Route und Verkehrslage öffnen →
   </a>
+
 </div>
 
 <script>
@@ -138,23 +237,26 @@ async function ladeFahrzeit() {
       throw new Error("Fahrzeit konnte nicht geladen werden");
     }
 
-    status.textContent =
-      "Aktuelle Fahrzeit: " + daten.travelTimeMinutes + " Minuten";
+    status.textContent = daten.travelTimeMinutes + " Minuten";
 
-    verkehr.textContent =
-      daten.trafficDelayMinutes > 0
-        ? "Verkehrsbedingte Verzögerung: " + daten.trafficDelayMinutes + " Minuten"
-        : "Keine zusätzliche Verkehrsverzögerung";
+    if (daten.trafficDelayMinutes > 0) {
+      verkehr.textContent =
+        "⚠️ Verkehrsbedingte Verzögerung: " +
+        daten.trafficDelayMinutes + " Minuten";
+    } else {
+      verkehr.textContent = "🚗 Keine zusätzliche Verkehrsverzögerung";
+    }
 
     aktualisiert.textContent =
-      "Stand: " + new Date(daten.updatedAt).toLocaleTimeString("de-DE", {
+      "↻ Stand: " +
+      new Date(daten.updatedAt).toLocaleTimeString("de-DE", {
         hour: "2-digit",
         minute: "2-digit"
       }) + " Uhr";
 
   } catch (fehler) {
-    status.textContent = "Fahrzeit derzeit nicht verfügbar";
-    verkehr.textContent = "";
+    status.textContent = "-- Minuten";
+    verkehr.textContent = "Fahrzeit derzeit nicht verfügbar";
     aktualisiert.textContent = "";
   }
 }
@@ -162,8 +264,7 @@ async function ladeFahrzeit() {
 ladeFahrzeit();
 setInterval(ladeFahrzeit, 5 * 60 * 1000);
 </script>
-
-
+  
 
 <div class="karte">
   <h2>⛽ Tankstellenpreise</h2>
